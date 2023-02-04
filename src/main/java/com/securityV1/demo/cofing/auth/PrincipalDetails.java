@@ -23,11 +23,20 @@ import java.util.Map;
 @Getter
 public class PrincipalDetails implements UserDetails, OAuth2User {
     private User user;
-
+    private Map<String, Object> attributes;
+    
+    //일반 로그인시 사용
     public PrincipalDetails(User user) {
         this.user = user;
+        //PrincipalDetailsService에서 User만 넣어서 반환함
     }
-
+    
+    //OAuth 로그인시 사용
+    public PrincipalDetails(User user, Map<String, Object> attributes) {
+        this.user = user;
+        this.attributes = attributes;
+        //PrincipalOauth2UserService에서 PrincipalDetails에 2가지 정보를 넣어서 생성하여 반환함
+    }
     @Override
     public <A> A getAttribute(String name) {
         return OAuth2User.super.getAttribute(name);
@@ -35,7 +44,7 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
 
     @Override
     public Map<String, Object> getAttributes() {
-        return null;
+        return attributes;
     }
 
     @Override
