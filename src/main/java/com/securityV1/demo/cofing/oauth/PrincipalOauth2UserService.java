@@ -1,6 +1,9 @@
 package com.securityV1.demo.cofing.oauth;
 
 import com.securityV1.demo.cofing.auth.PrincipalDetails;
+import com.securityV1.demo.cofing.oauth.provider.FaceBookUserInfo;
+import com.securityV1.demo.cofing.oauth.provider.GoogleUserInfo;
+import com.securityV1.demo.cofing.oauth.provider.OAUth2UserInfo;
 import com.securityV1.demo.domain.User;
 import com.securityV1.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -46,16 +49,37 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
          */
 
         OAuth2User oAuth2User = super.loadUser(userRequest);
-        log.info("loadUser(userRequest).getAttributes = {}", super.loadUser(userRequest).getAttributes());
+        log.info("loadUser(userRequest).getAttributes = {}", oAuth2User.getAttributes());
         /**
          * getAttribute에서 정보를 얻을 수 있음 -> 이를 통해서 자동 회원가입 등등의 과정을 가져갈 수 있다.
          */
 
-        String provider = userRequest.getClientRegistration().getClientId();
-        // google
-        String providerId = oAuth2User.getAttribute("sub");
-        // sub값
-        String email = oAuth2User.getAttribute("email");
+        OAUth2UserInfo oaUth2UserInfo = null;
+        oaUth2UserInfo = getOaUth2UserInfo(userRequest, oAuth2User, oaUth2UserInfo);
+
+        return getPrincipalDetails(oAuth2User, oaUth2UserInfo);
+        //이 반환값이 Authentication안에 들어가게 됨 -> OAuth2User 로그인시 여기로 접근하여 Authentication에 들어가게 됨
+    }
+
+    private OAUth2UserInfo getOaUth2UserInfo(OAuth2UserRequest userRequest, OAuth2User oAuth2User, OAUth2UserInfo oaUth2UserInfo) {
+        if (userRequest.getClientRegistration().getRegistrationId().equals("google")) {
+            log.info("구글 로그인 요청");
+            oaUth2UserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
+        }
+
+        if (userRequest.getClientRegistration().getRegistrationId().equals("facebook")) {
+            log.info("페이스북 로그인 요청");
+            oaUth2UserInfo = new FaceBookUserInfo(oAuth2User.getAttributes());
+        }
+        return oaUth2UserInfo;
+    }
+
+    private PrincipalDetails getPrincipalDetails(OAuth2User oAuth2User, OAUth2UserInfo oaUth2UserInfo) {
+        String provider = oaUth2UserInfo.getProvider();
+        // google of facebook
+        String providerId = oaUth2UserInfo.getProviderId();
+        // 넘어오는 ProviderId
+        String email = oaUth2UserInfo.getEmail();
         // email값
         String username = provider + "_" + providerId;
         // google_1032140005 이런식으로 생성됨
@@ -66,7 +90,7 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
         Optional<User> userById = userRepository.findByUsername(username);
 
         if (userById.isEmpty()) {
-            log.info("최초의 구글 로그인");
+            log.info("최초의 OAuth2 로그인");
             User user = User.builder()
                     .username(username)
                     .password(password)
@@ -79,10 +103,8 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
             userRepository.save(user);
             return new PrincipalDetails(user, oAuth2User.getAttributes());
         }
-        
-        log.info("이미 존재하는 구글 아이디");
+
+        log.info("이미 존재하는 OAuth 아이디");
         return new PrincipalDetails(userById.get(), oAuth2User.getAttributes());
-        
-        //이 반환값이 Authentication안에 들어가게 됨 -> OAuth2User 로그인시 여기로 접근하여 Authentication에 들어가게 됨
     }
 }
