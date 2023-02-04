@@ -58,6 +58,16 @@ public class IndexController {
         return "OAuth 세션 정보 확인하기";
     }
 
+    /**
+     * OAuth2와 일반 로그인 모두 PrincipalDetails로 받을 수 있도록 기능 추가
+     */
+    @GetMapping("/user")
+    @ResponseBody
+    public String user(@AuthenticationPrincipal PrincipalDetails principalDetails) {
+        log.info("PrincipalDetails : {}", principalDetails.getUser());
+        return "OAuth2, User 통일";
+    }
+
     @GetMapping({"", "/"})
     public String index() {
         return "index";
@@ -87,12 +97,6 @@ public class IndexController {
      * user, manager, admin은 권한 혹은 인증이 필요하게 해둠
      * 따라서 경로에서 "/"는 문제없으나 /user, /admin, /manager는 못들어간다. 인증 혹은 권한 필요
      */
-
-    @GetMapping("/user")
-    @ResponseBody
-    public String user() {
-        return "user";
-    }
 
     @GetMapping("/admin")
     @ResponseBody

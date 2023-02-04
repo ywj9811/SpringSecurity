@@ -23,6 +23,8 @@ public class PrincipalDetailsService implements UserDetailsService {
      * 중요!! username이라는 파라미터로 받고 있는데, 만약 loginForm에서 name=username이 아닌 다른 것으로 보내게 되면 매칭이 안됨!!
      * 바꾸고 싶다면 config에서 .usernameParameter("이름") 이렇게 설정해야 한다
      */
+
+    // 함수가 종료될 때 @AuthenticationPrincipal 어노테이션이 만들어 진다.
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<User> byUsername = userRepository.findByUsername(username);
