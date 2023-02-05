@@ -3,6 +3,7 @@ package com.securityV1.demo.cofing.oauth;
 import com.securityV1.demo.cofing.auth.PrincipalDetails;
 import com.securityV1.demo.cofing.oauth.provider.FaceBookUserInfo;
 import com.securityV1.demo.cofing.oauth.provider.GoogleUserInfo;
+import com.securityV1.demo.cofing.oauth.provider.NaverUserInfo;
 import com.securityV1.demo.cofing.oauth.provider.OAUth2UserInfo;
 import com.securityV1.demo.domain.User;
 import com.securityV1.demo.repository.UserRepository;
@@ -16,6 +17,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -36,6 +38,7 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
     // 함수가 종료될 때 @AuthenticationPrincipal 어노테이션이 만들어 진다.
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        log.info("PrincipalOauth2UserDetails 진입 : OAuth2 로그인 진행");
         log.info("userRequest.getClientRegistration = {}", userRequest.getClientRegistration());
         /**
          * registrationId를 통해 어떤 OAuth로 로그인 하였는지 확인 가능
@@ -70,6 +73,11 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
         if (userRequest.getClientRegistration().getRegistrationId().equals("facebook")) {
             log.info("페이스북 로그인 요청");
             oaUth2UserInfo = new FaceBookUserInfo(oAuth2User.getAttributes());
+        }
+        
+        if (userRequest.getClientRegistration().getRegistrationId().equals("naver")) {
+            log.info("네이버 로그인 요청");
+            oaUth2UserInfo = new NaverUserInfo((Map<String, Object>) oAuth2User.getAttributes().get("response"));
         }
         return oaUth2UserInfo;
     }
